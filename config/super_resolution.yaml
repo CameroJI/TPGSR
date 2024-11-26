@@ -3,8 +3,8 @@ MODEL:
 
 TRAIN:
   train_data_dir: [
-           '/data0_ssd2t/majianqi/TextZoom/train1',
-           '/data0_ssd2t/majianqi/TextZoom/train2',
+           'dataset/lmdb/str/TextZoom/train1',
+           'dataset/lmdb/str/TextZoom/train2',
           
   ]
   batch_size: 512
@@ -15,10 +15,10 @@ TRAIN:
   ngpu: 2
   workers: 1
   resume: ''
-  ckpt_dir: './ckpt/with_test'
-  voc_type: 'all' #'digits lower upper all'
-  saveInterval: 200
-  displayInterval: 50 #display loss
+  ckpt_dir: './ckpt'
+  voc_type: 'all'
+  saveInterval: 100
+  displayInterval: 50
   adadelta: False
   lr: 0.001
   adam: True
@@ -32,9 +32,9 @@ TRAIN:
   VAL:
     val_data_dir: [
              
-            '/data0_ssd2t/majianqi/TextZoom/test/easy',
-            '/data0_ssd2t/majianqi/TextZoom/test/medium',
-            '/data0_ssd2t/majianqi/TextZoom/test/hard',
+            'dataset/lmdb/str/TextZoom/test/easy',
+            'dataset/lmdb/str/TextZoom/test/medium',
+            'dataset/lmdb/str/TextZoom/test/hard',
     ]
     n_vis: 10
     vis_dir: 'demo'
