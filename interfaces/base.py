@@ -369,16 +369,17 @@ class TextBase(object):
         else:
             raise ValueError
 
-        with torch.cuda.device(0):
-            # input = torch.randn(1, 3, 16, 64).to(self.device)
-            # tp_in = torch.randn(1, 37, 1, 25).to(self.device)
-            # net = models.densenet161()
-            macs, params = ptflops.get_model_complexity_info(model, (4, 16, 64), as_strings=True,
-                                                             print_per_layer_stat=True, verbose=True)
-            print("---------------- SR Module -----------------")
-            print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
-            print('{:<30}  {:<8}'.format('Number of parameters: ', params))
-            print("--------------------------------------------")
+        if self.device == "cuda":
+            with torch.cuda.device(0):
+                # input = torch.randn(1, 3, 16, 64).to(self.device)
+                # tp_in = torch.randn(1, 37, 1, 25).to(self.device)
+                # net = models.densenet161()
+                macs, params = ptflops.get_model_complexity_info(model, (4, 16, 64), as_strings=True,
+                                                                print_per_layer_stat=True, verbose=True)
+                print("---------------- SR Module -----------------")
+                print('{:<30}  {:<8}'.format('Computational complexity: ', macs))
+                print('{:<30}  {:<8}'.format('Number of parameters: ', params))
+                print("--------------------------------------------")
 
         if self.args.arch != 'bicubic':
             model = model.to(self.device)
@@ -399,7 +400,7 @@ class TextBase(object):
                 else:
                     image_crit = torch.nn.DataParallel(image_crit, device_ids=range(cfg.ngpu))
 
-            if self.resume is not '':
+            if self.resume != '':
                 print('loading pre-trained model from %s ' % self.resume)
                 if self.config.TRAIN.ngpu == 1:
                     # if is dir, we need to initialize the model list
@@ -504,43 +505,40 @@ class TextBase(object):
             vis_im = torch.stack(images)
             vis_im = torchvision.utils.make_grid(vis_im, nrow=1, padding=0)
             out_root = os.path.join('./demo', self.vis_dir)
-            if not os.path.exists(out_root):
-                os.mkdir(out_root)
+            os.makedirs(out_root, exist_ok=True)
             out_path = os.path.join(out_root, str(index))
-            if not os.path.exists(out_path):
-                os.mkdir(out_path)
+            os.makedirs(out_path, exist_ok=True)
             im_name = pred_str_lr[i] + '_' + pred_str_sr[i] + '_' + label_strs[i] + '_.png'
             im_name = im_name.replace('/', '')
-            if index is not 0:
+            if index != 0:
                 torchvision.utils.save_image(vis_im, os.path.join(out_path, im_name), padding=0)
 
     def test_display(self, image_in, image_out, image_target, pred_str_lr, pred_str_sr, label_strs, str_filt):
         visualized = 0
         for i in (range(image_in.shape[0])):
-            if True:
-                if (str_filt(pred_str_lr[i], 'lower') != str_filt(label_strs[i], 'lower')) and \
-                        (str_filt(pred_str_sr[i], 'lower') == str_filt(label_strs[i], 'lower')):
-                    visualized += 1
-                    tensor_in = image_in[i].cpu()
-                    tensor_out = image_out[i].cpu()
-                    tensor_target = image_target[i].cpu()
-                    transform = transforms.Compose(
-                        [transforms.ToPILImage(),
-                         transforms.Resize((image_target.shape[-2], image_target.shape[-1]), interpolation=Image.BICUBIC),
-                         transforms.ToTensor()]
-                    )
-                    tensor_in = transform(tensor_in)
-                    images = ([tensor_in, tensor_out, tensor_target])
-                    vis_im = torch.stack(images)
-                    vis_im = torchvision.utils.make_grid(vis_im, nrow=1, padding=0)
-                    out_root = os.path.join('./display', self.vis_dir)
-                    if not os.path.exists(out_root):
-                        os.mkdir(out_root)
-                    if not os.path.exists(out_root):
-                        os.mkdir(out_root)
-                    im_name = pred_str_lr[i] + '_' + pred_str_sr[i] + '_' + label_strs[i] + '_.png'
-                    im_name = im_name.replace('/', '')
-                    torchvision.utils.save_image(vis_im, os.path.join(out_root, im_name), padding=0)
+            if (str_filt(pred_str_lr[i], 'lower') != str_filt(label_strs[i], 'lower')) and \
+                            (str_filt(pred_str_sr[i], 'lower') == str_filt(label_strs[i], 'lower')):
+                visualized += 1
+                tensor_in = image_in[i].cpu()
+                tensor_out = image_out[i].cpu()
+                tensor_target = image_target[i].cpu()
+                transform = transforms.Compose(
+                    [transforms.ToPILImage(),
+                     transforms.Resize((image_target.shape[-2], image_target.shape[-1]), interpolation=Image.BICUBIC),
+                     transforms.ToTensor()]
+                )
+                tensor_in = transform(tensor_in)
+                images = ([tensor_in, tensor_out, tensor_target])
+                vis_im = torch.stack(images)
+                vis_im = torchvision.utils.make_grid(vis_im, nrow=1, padding=0)
+                out_root = os.path.join('./display', self.vis_dir)
+                if not os.path.exists(out_root):
+                    os.mkdir(out_root)
+                if not os.path.exists(out_root):
+                    os.mkdir(out_root)
+                im_name = f'{pred_str_lr[i]}_{pred_str_sr[i]}_{label_strs[i]}_.png'
+                im_name = im_name.replace('/', '')
+                torchvision.utils.save_image(vis_im, os.path.join(out_root, im_name), padding=0)
         return visualized
 
     def save_checkpoint(self, netG_list, epoch, iters, best_acc_dict, best_model_info, is_best, converge_list, recognizer=None):
