@@ -556,7 +556,7 @@ class TextBase(object):
                          'voc_type': self.voc_type, 'up_scale_factor': self.scale_factor},
                 'best_history_res': best_acc_dict,
                 'best_model_info': best_model_info,
-                'param_num': sum([param.nelement() for param in netG.module.parameters()]),
+                'param_num': sum(param.nelement() for param in (netG.module.parameters() if hasattr(netG, 'module') else netG.parameters())),
                 'converge': converge_list,
             }
 
