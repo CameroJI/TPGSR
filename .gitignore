@@ -1,3 +1,5 @@
 
 dataset/lmdb/.DS_Store
 dataset/lmdb/str/.DS_Store
+*.pth
+*.tar

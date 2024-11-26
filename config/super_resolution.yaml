@@ -39,7 +39,7 @@ TRAIN:
     n_vis: 10
     vis_dir: 'demo'
     valInterval: 200 #-1, val at the end of epoch
-    rec_pretrained: 'aster_demo.pth.tar'
+    rec_pretrained: 'demo.pth.tar'
     moran_pretrained: 'moran_demo.pth'
     crnn_pretrained: 'crnn.pth'
 
