@@ -549,6 +549,7 @@ class TextBase(object):
 
         for i in range(len(netG_list)):
             netG = netG_list[i]
+            print(netG)
             save_dict = {
                 'state_dict_G': netG.module.state_dict() if hasattr(netG, 'module') else netG.state_dict(),
                 'info': {'arch': self.args.arch, 'iters': iters, 'epochs': epoch, 'batch_size': self.batch_size,
