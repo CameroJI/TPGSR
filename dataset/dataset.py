@@ -22,7 +22,6 @@ sys.path.append('../')
 from utils import str_filt
 from utils.labelmaps import get_vocabulary, labels2strs
 from IPython import embed
-from pyfasttext import FastText
 random.seed(0)
 
 from utils import utils_deblur
