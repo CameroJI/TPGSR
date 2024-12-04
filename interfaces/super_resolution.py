@@ -1467,7 +1467,8 @@ class TextSR(base.TextBase):
         sum_images = 0
         time_begin = time.time()
         sr_time = 0
-        for im_name in tqdm(os.listdir(self.args.demo_dir)):
+        img_list = [file for file in os.listdir(self.args.demo_dir) if file.lower().endswith(('.png', '.jpg', '.jpeg'))]
+        for im_name in tqdm(img_list):
             images_lr = transform_(os.path.join(self.args.demo_dir, im_name))
             images_lr = images_lr.to(self.device)
             sr_beigin = time.time()

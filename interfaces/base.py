@@ -408,21 +408,18 @@ class TextBase(object):
                         model.load_state_dict(
                             torch.load(
                                 os.path.join(self.resume, "model_best_" + str(iter) + ".pth")
-                            )['state_dict_G']
+                            , map_location=self.device, weights_only=True)['state_dict_G']
                             )
                     else:
                         model.load_state_dict(torch.load(self.resume)['state_dict_G'])
                 else:
 
                     if os.path.isdir(self.resume):
-                        model.load_state_dict(
-                            {'module.' + k: v for k, v in torch.load(
-                                os.path.join(self.resume, "model_best_" + str(iter) + ".pth")
-                            )['state_dict_G'].items()}
-                            )
+                        model_state = torch.load(self.resume, map_location=self.device, weights_only=False)
+                        model.load_state_dict(model_state['state_dict_G'])
                     else:
-                        model.load_state_dict(
-                        {'module.' + k: v for k, v in torch.load(self.resume)['state_dict_G'].items()})
+                        model_state = torch.load(self.resume, map_location=self.device, weights_only=False)
+                        model.load_state_dict(model_state['state_dict_G'])
         return {'model': model, 'crit': image_crit}
 
     def optimizer_init(self, model, recognizer=None):
@@ -831,7 +828,7 @@ class TextBase(object):
         aster = recognizer.RecognizerBuilder(arch='ResNet_ASTER', rec_num_classes=aster_info.rec_num_classes,
                                              sDim=512, attDim=512, max_len_labels=aster_info.max_len,
                                              eos=aster_info.char2id[aster_info.EOS], STN_ON=True)
-        aster.load_state_dict(torch.load(self.config.TRAIN.VAL.rec_pretrained)['state_dict'])
+        aster.load_state_dict(torch.load(self.config.TRAIN.VAL.rec_pretrained, map_location=self.device, weights_only=True)['state_dict'])
         print('load pred_trained aster model from %s' % self.config.TRAIN.VAL.rec_pretrained)
         aster = aster.to(self.device)
         aster = torch.nn.DataParallel(aster, device_ids=range(cfg.ngpu))
